@@ -9,6 +9,7 @@ namespace ConsoleApplication1
 {
     class Program
     {
+        private static Dictionary<string, int>[] _Dict;
         static void Main(string[] args)
         {
 #if !ONLINE_JUDGE
@@ -58,12 +59,15 @@ namespace ConsoleApplication1
             }
 
             int[,] a = new int[k, k];
+            _Dict = new Dictionary<string, int>[k];
+            for (int i = 0; i < k; i++)
+                _Dict[i] = new Dictionary<string, int>();
 
             for (int i = 0; i < k; i++)
                 for (int j = 0; j < k; j++)
                     a[i, j] = _a[i, j];
 
-
+            Console.WriteLine(_Rec(a));
 
 #if !ONLINE_JUDGE
             sr.Close();
@@ -72,32 +76,75 @@ namespace ConsoleApplication1
 #endif
         }
 
-        private static int _Rec(int[,] a)
+        private static int _Rec(int[,] a0)
         {
+            int k = a0.GetLength(0);
+            if (k == 2)
+                return a0[0, 1];
 
+            string key = _GetKey(a0);
+            if (_Dict[k - 1].ContainsKey(key))
+                return _Dict[k - 1][key];
 
-            return 0;
-        }
+            int j0;
+            for (j0 = k - 2; j0 >= 0; j0--)
+                if (a0[k - 1, j0] > 0)
+                    break;
 
-        private static int[,] _Deletion(int[,] a, int i, int j)
-        {
-            int k = a.GetLength(0);
-            int[,] res = new int[k, k];
+            if (j0 < 0)
+                return 0;
 
-            for (int i1 = 0; i1 < k; i1++)
-                for (int j1 = 0; j1 < k; j1++)
-                    res[i1, j1] = a[i1, j1];
-
-            res[i, j] = res[j, i] = 0;
+            int res = a0[k - 1, j0] * (_Rec(_Deletion(a0, k - 1, j0)) + _Rec(_Contraction(a0, j0)));
+            res = res % 1000000000;
+            _Dict[k - 1].Add(key, res);
 
             return res;
         }
 
-        private static int[,] _Contraction(int[,] a, int i, int j)
+        private static string _GetKey(int[,] a0)
         {
-            int k = a.GetLength(0) - 1;
+            StringBuilder res = new StringBuilder(50);
+            int k = a0.GetLength(0);
+
+            for (int i = 0; i < k; i++)
+                for (int j = 0; j < k; j++)
+                    res.AppendFormat(".{0}", a0[i, j]);
+
+            return res.ToString();
+        }
+
+        private static int[,] _Deletion(int[,] a0, int i0, int j0)
+        {
+            int k = a0.GetLength(0);
             int[,] res = new int[k, k];
 
+            for (int i = 0; i < k; i++)
+                for (int j = 0; j < k; j++)
+                    res[i, j] = a0[i, j];
+
+            res[i0, j0] = res[j0, i0] = 0;
+
+            return res;
+        }
+
+        private static int[,] _Contraction(int[,] a0, int j0)
+        {
+            int k = a0.GetLength(0);
+            int[,] tmpa = _Deletion(a0, k - 1, j0);
+
+            for (int i = 0; i < k; i++)
+            {
+                tmpa[i, j0] += tmpa[i, k - 1];
+                tmpa[j0, i] += tmpa[k - 1, i];
+            }
+
+            int[,] res = new int[k - 1, k - 1];
+
+            for (int i = 0; i < k - 1; i++)
+                for (int j = 0; j < k - 1; j++)
+                    res[i, j] = tmpa[i, j];
+
+            return res;
             
         }
     }
