@@ -22,7 +22,6 @@ namespace ConsoleApplication1
             int m = Convert.ToInt32(tokens[1]);
 
             int[,] _a = new int[n * m, n * m];
-            int[,] a = new int[n * m, n * m];
             int[,] b = new int[n, m];
 
             for (int i = 0; i < n * m; i++)
@@ -58,6 +57,8 @@ namespace ConsoleApplication1
                 preline = line;
             }
 
+            int[,] a = new int[k, k];
+
             for (int i = 0; i < k; i++)
                 for (int j = 0; j < k; j++)
                     a[i, j] = _a[i, j];
@@ -69,6 +70,35 @@ namespace ConsoleApplication1
             sw.Flush();
             sw.Close();
 #endif
+        }
+
+        private static int _Rec(int[,] a)
+        {
+
+
+            return 0;
+        }
+
+        private static int[,] _Deletion(int[,] a, int i, int j)
+        {
+            int k = a.GetLength(0);
+            int[,] res = new int[k, k];
+
+            for (int i1 = 0; i1 < k; i1++)
+                for (int j1 = 0; j1 < k; j1++)
+                    res[i1, j1] = a[i1, j1];
+
+            res[i, j] = res[j, i] = 0;
+
+            return res;
+        }
+
+        private static int[,] _Contraction(int[,] a, int i, int j)
+        {
+            int k = a.GetLength(0) - 1;
+            int[,] res = new int[k, k];
+
+            
         }
     }
 }
