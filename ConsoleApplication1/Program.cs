@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,7 +13,7 @@ namespace ConsoleApplication1
     class Program
     {
 
-        static int[,] a;
+        static decimal[,] a;
         static int k;
         static StringDictionary dict = new StringDictionary();
         static void Main(string[] args)
@@ -67,8 +68,8 @@ namespace ConsoleApplication1
             if (k > 1)
             {
                 k--;
-                a = new int[k, k];
-
+                a = new decimal[k, k];
+                bool degree0 = false;
                 for (int i = 0; i < k; i++)
                 {
                     int t = 0;
@@ -81,8 +82,17 @@ namespace ConsoleApplication1
                         }
                     }
                     a[i, i] = t + _a[i, k];
+                    if (a[i, i] == 0)
+                    {
+                        degree0 = true;
+                        break;
+                    }
+
                 }
-                Console.WriteLine(_Det(0, c));
+                if (!degree0)
+                    Console.WriteLine(_Det());
+                else
+                    Console.WriteLine(0);
             }
             else
                 Console.WriteLine(0);
@@ -94,40 +104,35 @@ namespace ConsoleApplication1
 #endif
         }
 
-        private static int _Det(int l, int[] c)
+        private static int _Det()
         {
-            int res = 0;
-            int i1 = 0;
-
-            string key = string.Format("{0}.{1}.{2}.{3}", c[0], c[1], c[2], l);
-            if (dict.ContainsKey(key))
-                return int.Parse(dict[key]);
-
-            for (int i = 0; i < k; i++)
+            System.Numerics.BigInteger bi = new BigInteger();
+            
+            for (int i = 0; i < k - 1; i++)
             {
-                if ((c[i / 32] & (1 << (i % 32))) == 0)
-                    continue;
-
-                if (l == k - 1)
+                for (int j = i + 1; j < k; j++)
                 {
-                    res = a[l, i];
-                    break;
+                    decimal t = a[j, i] / a[i, i];
+
+                    for (int f = 0; f < k; f++)
+                    {
+                        a[j, f] -= t * a[i, f];
+                    }
                 }
-
-                int[] c1 = new int[3];
-                c.CopyTo(c1, 0);
-                c1[i / 32] &= ~(1 << (i % 32));
-                if (i1 % 2 == 0)
-                    res += a[l, i] * _Det(l + 1, c1);
-                else
-                    res -= a[l, i] * _Det(l + 1, c1);
-
-                res %= 1000000000;
-                i1++;
             }
 
-            dict.Add(key, res.ToString());
-            return res;
+            decimal res = a[0, 0];
+
+            for (int i = 1; i < k; i++)
+            {
+                res *= a[i, i];
+                res %= 1000000000;
+            }
+
+            return Convert.ToInt32(decimal.Round(res, 0));
         }
     }
 }
+
+//19872369301840986112
+             //671702784.98267021986205253039M
