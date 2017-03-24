@@ -94,7 +94,7 @@ namespace ConsoleApplication1
 #endif
         }
 
-        private static int _Det(int[,] a0, int k)
+        private static string _Det(int[,] a0, int k)
         {
             Num[,] a = new Num[k, k];
 
@@ -118,7 +118,13 @@ namespace ConsoleApplication1
                 }
             }
 
-            return Convert.ToInt32(decimal.Round(0, 0));
+            Num res = Num.One;
+            for (int i = 0; i < k; i++)
+            {
+                res = res * a[i, i];
+            }
+
+            return BigInteger.Remainder(BigInteger.Divide(res.Up, res.Down), new BigInteger(1000000000)).ToString();
         }
     }
 
@@ -126,6 +132,8 @@ namespace ConsoleApplication1
     {
         public BigInteger Up;
         public BigInteger Down;
+
+        public static Num One = new Num(BigInteger.One, BigInteger.One);
 
         public Num(BigInteger up, BigInteger down)
         {
