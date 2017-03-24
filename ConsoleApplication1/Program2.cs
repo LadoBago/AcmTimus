@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Specialized;
 using System.IO;
+using System.Numerics;
 
 namespace ConsoleApplication1
 {
-    class Program
+    class Program2
     {
-        static void Main2(string[] args)
+        static void Main(string[] args)
         {
 #if !ONLINE_JUDGE
             StreamReader sr = new StreamReader("Input.txt");
@@ -18,7 +19,7 @@ namespace ConsoleApplication1
             int n = Convert.ToInt32(tokens[0]);
             int m = Convert.ToInt32(tokens[1]);
 
-            
+
             int[,] _a = new int[n * m, n * m];
             int[,] b = new int[n, m];
             int[] c = new int[] { -1, -1, 0x1FFFF };
@@ -57,7 +58,7 @@ namespace ConsoleApplication1
             }
             if (k > 1)
             {
-                decimal[,] a = new decimal[k, k];
+                int[,] a = new int[k, k];
                 bool degree0 = false;
                 for (int i = 0; i < k; i++)
                 {
@@ -93,15 +94,21 @@ namespace ConsoleApplication1
 #endif
         }
 
-        private static int _Det(decimal[,] a, int k)
+        private static int _Det(int[,] a0, int k)
         {
+            Num[,] a = new Num[k, k];
+
+            for (int i = 0; i < k; i++)
+                for (int j = 0; j < k; j++)
+                    a[i, j] = new Num(new BigInteger(a0[i, j]), BigInteger.One);
+
             for (int i = 0; i < k - 1; i++)
             {
                 for (int j = i + 1; j < k; j++)
                 {
-                    if (a[j, i] != 0)
+                    if (BigInteger.Compare(a[j, i].Up, BigInteger.Zero) != 0)
                     {
-                        decimal t = a[j, i] / a[i, i];
+                        Num t = a[j, i] / a[i, i];
 
                         for (int f = i; f < k; f++)
                         {
@@ -111,39 +118,66 @@ namespace ConsoleApplication1
                 }
             }
 
-            decimal[] d = new decimal[51];
-            for (int i = 1; i < 50; i++)
-                d[i] = 0;
+            return Convert.ToInt32(decimal.Round(0, 0));
+        }
+    }
 
-            d[0] = a[0, 0];
+    struct Num
+    {
+        public BigInteger Up;
+        public BigInteger Down;
 
-            for (int i = 1; i < k; i++)
+        public Num(BigInteger up, BigInteger down)
+        {
+            Up = up;
+            Down = down;
+        }
+
+        public static void Normalize(ref Num num)
+        {
+            BigInteger gcd = BigInteger.GreatestCommonDivisor(num.Up, num.Down);
+            if (BigInteger.Compare(gcd, BigInteger.One) > 0)
             {
-                d[50] *= a[i, i];
-                for (int j = 49; j >= 0; j--)
-                {
-                    d[j] *= a[i, i];
-                    d[j + 1] += (int)(d[j] / 10);
-                    d[j] %= 10;
-                }
+                num.Down = BigInteger.Divide(num.Down, gcd);
+                num.Up = BigInteger.Divide(num.Up, gcd);
             }
+        }
+        public void Normalize()
+        {
+            Normalize(ref this); 
+        }
 
-            decimal res = 0;
+        public static Num operator *(Num l, Num r)
+        {
+            if (BigInteger.Compare(l.Up, BigInteger.Zero) == 0)
+                return new Num(BigInteger.Zero, BigInteger.One);
+            if (BigInteger.Compare(r.Up, BigInteger.Zero) == 0)
+                return new Num(BigInteger.Zero, BigInteger.One);
 
-            for (int i = 50; i >= 9; i--)
-            {
-                int w = i - 9;
-                for (int j = 0; j < w; j++)
-                {
-                    d[i] = d[i] * 10 - decimal.Truncate(d[i] * 10);
-                }
-                res += d[i];
-            }
+            Num res = new Num(BigInteger.Multiply(l.Up, r.Up), BigInteger.Multiply(l.Down, r.Down));
+            res.Normalize();
+            return res;
+        }
+        public static Num operator /(Num l, Num r)
+        {
+            if (BigInteger.Compare(l.Up, BigInteger.Zero) == 0)
+                return new Num(BigInteger.Zero, BigInteger.One);
 
-            res = (res - decimal.Truncate(res)) * 1000000000;
-            res += d[8] * 100000000 + d[7] * 10000000 + d[6] * 1000000 + d[5] * 100000 + d[4] * 10000 + d[3] * 1000 + d[2] * 100 + d[1] * 10 + d[0];
-
-            return Convert.ToInt32(decimal.Round(res, 0));
+            Num res = new Num(BigInteger.Multiply(l.Up, r.Down), BigInteger.Multiply(l.Down, r.Up));
+            res.Normalize();
+            return res;
+        }
+        public static Num operator -(Num l, Num r)
+        {
+            Num res = new Num(BigInteger.Subtract(BigInteger.Multiply(l.Up, r.Down), BigInteger.Multiply(r.Up, l.Down)), BigInteger.Multiply(l.Down, r.Down));
+            res.Normalize();
+            return res;
+        }
+        public static Num operator +(Num l, Num r)
+        {
+            Num res = new Num(BigInteger.Add(BigInteger.Multiply(l.Up, r.Down), BigInteger.Multiply(r.Up, l.Down)), BigInteger.Multiply(l.Down, r.Down));
+            res.Normalize();
+            return res;
         }
     }
 }
