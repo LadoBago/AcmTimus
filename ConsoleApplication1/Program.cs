@@ -74,7 +74,8 @@ namespace ConsoleApplication1
 
 
 #if !ONLINE_JUDGE
-                sr.Close();
+            ;
+            sr.Close();
             sw.Flush();
             sw.Close();
 #endif
