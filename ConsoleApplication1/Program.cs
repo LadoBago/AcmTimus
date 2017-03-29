@@ -15,61 +15,31 @@ namespace ConsoleApplication1
             Console.SetIn(sr);
             Console.SetOut(sw);
 #endif
-            string[] tokens = Console.ReadLine().Split(' ', '\t');
-            int n = Convert.ToInt32(tokens[0]);
-
-            int[,] a = new int[n, n + 1];
+            int n = Convert.ToInt32(Console.ReadLine());
+            bool[,] a = new bool[n, n];
 
             for (int i = 0; i < n; i++)
-                for (int j = 0; j < n + 1; j++)
-                    a[i, j] = j == n ? 1 : 0;
+                for (int j = 0; j < n; j++)
+                    a[i, j] = false;
 
             for (int i = 0; i < n; i++)
             {
-                tokens = Console.ReadLine().Split(' ', '\t');
-                int[] t = tokens.Select(e => int.Parse(e)).ToArray();
-                for (int j = 0; j < (t.Length - 1); j++)
-                {
-                    a[t[j] - 1, i] = 1;
-                }
-            }
-
-            for (int i = 0; i < n; i++)
-            {
-                if (a[i, i] == 0)
-                {
-                    for (int r = i + 1; r < n; r++)
-                    {
-                        if (a[r, i] == 1)
-                        {
-                            for (int u = i; u < n + 1; u++)
-                                a[i, u] ^= a[r, u];
-                            break;
-                        }
-                    }
-                }
+                string line = Console.ReadLine();
 
                 for (int j = 0; j < n; j++)
                 {
-                    if (j == i)
-                        continue;
-
-                    if (a[j, i] == 0)
-                        continue;
-
-                    for (int f = i; f < n + 1; f++)
-                    {
-                        a[j, f] ^= a[i, f];
-                    }
+                    if (line[j] == '1')
+                        a[j, i] = true;
                 }
             }
 
-            for (int i = 0; i < n; i++)
+
+            int q = Convert.ToInt32(Console.ReadLine());
+
+            for (int i = 0; i < q; i++)
             {
-                if (a[i, n] == 1)
-                {
-                    Console.Write("{0} ", i + 1);
-                }
+                int[] tokens = Console.ReadLine().Split(' ', '\t').Select(e => int.Parse(e)).ToArray();
+                Console.Write(!a[tokens[0], tokens[1]] ? "YES" : "NO");
             }
 
 
