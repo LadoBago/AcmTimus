@@ -17,20 +17,22 @@ namespace ConsoleApplication1
             Console.SetOut(sw);
 #endif
             int n = Convert.ToInt32(Console.ReadLine());
+
             bool[,] a = new bool[n, n];
+            List<int> roots = new List<int>();
 
             s = new List<int>[n];
             w = new List<int>[n];
+
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    a[i, j] = false;
 
             for (int i = 0; i < n; i++)
             {
                 s[i] = new List<int>();
                 w[i] = new List<int>();
             }
-
-            for (int i = 0; i < n; i++)
-                for (int j = 0; j < n; j++)
-                    a[i, j] = false;
 
             for (int i = 0; i < n; i++)
             {
@@ -40,11 +42,44 @@ namespace ConsoleApplication1
                 {
                     if (line[j] == '1')
                     {
-                        a[i, j] = true;
                         s[i].Add(j);
                         w[j].Add(i);
                     }
                 }
+            }
+
+            for (int i = 0; i < n; i++)
+                if (w[i].Count == 0)
+                    roots.Add(i);
+
+            foreach (int root in roots)
+            {
+                Queue<int> queue = new Queue<int>();
+                queue.Enqueue(root);
+                bool[] inqueue = new bool[n];
+                List<int> v2 = new List<int>();
+
+                for (int i = 0; i < n; i++)
+                    inqueue[i] = false;
+
+                while (queue.Count > 0)
+                {
+                    int deq = queue.Dequeue();
+                    foreach (int sng in s[deq])
+                    {
+                        if (!inqueue[sng])
+                        {
+                            queue.Enqueue(sng);
+                            inqueue[sng] = true;
+                        }
+                    }
+
+                    v2.Add(deq);
+                }
+
+                for (int i = 1; i < v2.Count; i++)
+                    for (int j = i + 1; j < v2.Count; j++)
+                        a[v2[i], v2[j]] = a[v2[j], v2[i]] = true;
             }
 
             int q = Convert.ToInt32(Console.ReadLine());
@@ -55,27 +90,12 @@ namespace ConsoleApplication1
                 int t1 = tokens[0] - 1;
                 int t2 = tokens[1] - 1;
 
-                if (IsRout(t1, t2))
-                {
-                    if (w[t1].Count == 0)
-                        Console.WriteLine("YES");
-                    else
-                        Console.WriteLine("NO");
-                }
-                else if (IsRout(t2, t1))
-                {
-                    if (w[t2].Count == 0)
-                        Console.WriteLine("YES");
-                    else
-                        Console.WriteLine("NO");
-                }
-                else
+                if (!a[t1, t2])
                     Console.WriteLine("YES");
-            }
-            /*
-             რუთები მოვძებნო, ანუ რომლისთვისაც არავის მოუგია და იმათი DFS ები დავიმახსოვრო.
-             */
+                else
+                    Console.WriteLine("No");
 
+            }
 
 #if !ONLINE_JUDGE
             ;
@@ -83,23 +103,6 @@ namespace ConsoleApplication1
             sw.Flush();
             sw.Close();
 #endif
-        }
-
-        private static bool IsRout(int i, int j)
-        {
-            bool res = false;
-            foreach (int v in s[i])
-            {
-                if (v == j)
-                {
-                    res = true;
-                    break;
-                }
-                res = IsRout(v, j);
-                if (res)
-                    break;
-            }
-            return res;
         }
     }
 }
