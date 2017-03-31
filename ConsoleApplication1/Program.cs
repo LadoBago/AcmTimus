@@ -16,6 +16,8 @@ namespace ConsoleApplication1
             Console.SetIn(sr);
             Console.SetOut(sw);
 #endif
+            Console.WriteLine(DateTime.Now.Ticks);
+
             int n = Convert.ToInt32(Console.ReadLine());
 
             bool[,] a = new bool[n, n];
@@ -25,21 +27,16 @@ namespace ConsoleApplication1
             w = new List<int>[n];
 
             for (int i = 0; i < n; i++)
-                for (int j = 0; j < n; j++)
-                    a[i, j] = false;
-
-            for (int i = 0; i < n; i++)
             {
                 s[i] = new List<int>();
-                w[i] = new List<int>();
-            }
-
-            for (int i = 0; i < n; i++)
-            {
                 string line = Console.ReadLine();
 
                 for (int j = 0; j < n; j++)
                 {
+                    a[i, j] = false;
+                    if (i == 0)
+                        w[j] = new List<int>();
+
                     if (line[j] == '1')
                     {
                         s[i].Add(j);
@@ -51,6 +48,8 @@ namespace ConsoleApplication1
             for (int i = 0; i < n; i++)
                 if (w[i].Count == 0)
                     roots.Add(i);
+
+            Console.WriteLine(DateTime.Now.Ticks);
 
             foreach (int root in roots)
             {
@@ -96,6 +95,8 @@ namespace ConsoleApplication1
                     Console.WriteLine("No");
 
             }
+
+            Console.WriteLine(DateTime.Now.Ticks);
 
 #if !ONLINE_JUDGE
             ;
