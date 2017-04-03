@@ -8,6 +8,7 @@ namespace ConsoleApplication1
     class Program
     {
         private static List<int>[] s, w;
+        private static bool[,] aa;
         static void Main(string[] args)
         {
 #if !ONLINE_JUDGE
@@ -21,6 +22,7 @@ namespace ConsoleApplication1
             int n = Convert.ToInt32(Console.ReadLine());
 
             bool[,] a = new bool[n, n];
+            aa = new bool[n, n];
             List<int> roots = new List<int>();
 
             s = new List<int>[n];
@@ -34,6 +36,7 @@ namespace ConsoleApplication1
                 for (int j = 0; j < n; j++)
                 {
                     a[i, j] = false;
+                    aa[i, j] = false;
                     if (i == 0)
                         w[j] = new List<int>();
 
@@ -53,30 +56,14 @@ namespace ConsoleApplication1
 
             foreach (int root in roots)
             {
-                Queue<int> queue = new Queue<int>();
-                queue.Enqueue(root);
-                bool[] inqueue = new bool[n];
+                DFSUtil(root, root);
                 List<int> v2 = new List<int>();
 
                 for (int i = 0; i < n; i++)
-                    inqueue[i] = false;
+                    if (aa[root, i])
+                        v2.Add(i);
 
-                while (queue.Count > 0)
-                {
-                    int deq = queue.Dequeue();
-                    foreach (int sng in s[deq])
-                    {
-                        if (!inqueue[sng])
-                        {
-                            queue.Enqueue(sng);
-                            inqueue[sng] = true;
-                        }
-                    }
-
-                    v2.Add(deq);
-                }
-
-                for (int i = 1; i < v2.Count; i++)
+                for (int i = 0; i < v2.Count; i++)
                     for (int j = i + 1; j < v2.Count; j++)
                         a[v2[i], v2[j]] = a[v2[j], v2[i]] = true;
             }
@@ -104,6 +91,14 @@ namespace ConsoleApplication1
             sw.Flush();
             sw.Close();
 #endif
+        }
+
+        private static void DFSUtil(int u, int v)
+        {
+            aa[u, v] = u != v;
+            foreach (int i in s[v])
+                if (!aa[u, i])
+                    DFSUtil(u, i);
         }
     }
 }
