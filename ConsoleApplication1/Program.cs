@@ -8,7 +8,7 @@ namespace ConsoleApplication1
     class Program
     {
         private static List<int>[] s, w;
-        private static bool[,] aa;
+        private static bool[,] aa, a;
         static void Main(string[] args)
         {
 #if !ONLINE_JUDGE
@@ -17,11 +17,11 @@ namespace ConsoleApplication1
             Console.SetIn(sr);
             Console.SetOut(sw);
 #endif
-            Console.WriteLine(DateTime.Now.Ticks);
+            //Console.WriteLine(DateTime.Now.Ticks);
 
             int n = Convert.ToInt32(Console.ReadLine());
 
-            bool[,] a = new bool[n, n];
+            a = new bool[n, n];
             aa = new bool[n, n];
             List<int> roots = new List<int>();
 
@@ -35,7 +35,7 @@ namespace ConsoleApplication1
 
                 for (int j = 0; j < n; j++)
                 {
-                    a[i, j] = false;
+                    a[i, j] = i == j;
                     aa[i, j] = false;
                     if (i == 0)
                         w[j] = new List<int>();
@@ -49,24 +49,7 @@ namespace ConsoleApplication1
             }
 
             for (int i = 0; i < n; i++)
-                if (w[i].Count == 0)
-                    roots.Add(i);
-
-            Console.WriteLine(DateTime.Now.Ticks);
-
-            foreach (int root in roots)
-            {
-                DFSUtil(root, root);
-                List<int> v2 = new List<int>();
-
-                for (int i = 0; i < n; i++)
-                    if (aa[root, i])
-                        v2.Add(i);
-
-                for (int i = 0; i < v2.Count; i++)
-                    for (int j = i + 1; j < v2.Count; j++)
-                        a[v2[i], v2[j]] = a[v2[j], v2[i]] = true;
-            }
+                DFS_U(i, i);
 
             int q = Convert.ToInt32(Console.ReadLine());
 
@@ -80,10 +63,9 @@ namespace ConsoleApplication1
                     Console.WriteLine("YES");
                 else
                     Console.WriteLine("No");
-
             }
 
-            Console.WriteLine(DateTime.Now.Ticks);
+            //Console.WriteLine(DateTime.Now.Ticks);
 
 #if !ONLINE_JUDGE
             ;
@@ -93,12 +75,25 @@ namespace ConsoleApplication1
 #endif
         }
 
-        private static void DFSUtil(int u, int v)
+        private static void DFS_U(int u, int v)
         {
-            aa[u, v] = u != v;
-            foreach (int i in s[v])
+            aa[u, v] = true;
+            foreach (int i in w[v])
                 if (!aa[u, i])
-                    DFSUtil(u, i);
+                    DFS_U(u, i);
+
+            if (!a[u, v])
+                DFS_D(u, v);
+        }
+
+        private static void DFS_D(int u, int v)
+        {
+            foreach (int i in s[v])
+                if (!a[u, i])
+                {
+                    a[u, i] = true;
+                    DFS_D(u, i);
+                }
         }
     }
 }
