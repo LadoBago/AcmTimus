@@ -7,8 +7,7 @@ namespace ConsoleApplication1
 {
     class Program
     {
-        private static List<int>[] s, w;
-        private static bool[,] aa;
+        private static float[,] a;
         static void Main(string[] args)
         {
 #if !ONLINE_JUDGE
@@ -18,72 +17,17 @@ namespace ConsoleApplication1
             Console.SetOut(sw);
 #endif
             int n = Convert.ToInt32(Console.ReadLine());
-            aa = new bool[n, n];
-            int n64 = n / 64 + 1;
-
-            ulong[,] ff = new ulong[n, n64];
-            List<int> roots = new List<int>();
-
-            s = new List<int>[n];
-            w = new List<int>[n];
-            bool[] flags = new bool[n];
+            a = new float[4, n];
+            int[] tokens = Console.ReadLine().Split(' ', '\t').Select(e => int.Parse(e)).ToArray();
 
             for (int i = 0; i < n; i++)
             {
-                flags[i] = false;
-                s[i] = new List<int>();
-                string line = Console.ReadLine();
-
-                for (int j = 0; j < n; j++)
-                {
-                    aa[i, j] = false;
-                    if (i == 0)
-                        w[j] = new List<int>();
-
-                    if (j < n64)
-                        ff[i, j] = 0;
-
-                    if (line[j] == '1')
-                    {
-                        s[i].Add(j);
-                        w[j].Add(i);
-                    }
-                }
+                a[0, i] = tokens[i];
+                a[1, i] = 0.75F * tokens[i];
+                a[2, i] = 1.1F * tokens[i];
+                a[3, i] = 0.825F * tokens[i];
             }
 
-            for (int i = 0; i < n; i++)
-                if (w[i].Count == 0)
-                    DFS(i, i);
-
-            for (int i = 0; i < n; i++)
-            {
-                if (w[i].Count == 0)
-                {
-                    ulong[] f = new ulong[16] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-                    for (int j = 0; j < n; j++)
-                        if (i != j && aa[i, j])
-                            f[j / 64] |= ((ulong)1 << (j % 64));
-
-                    for (int j = 0; j < n; j++)
-                        if (i != j && aa[i, j])
-                            for (int p = 0; p < n64; p++)
-                                ff[j, p] |= f[p];
-                }
-            }
-
-            int q = Convert.ToInt32(Console.ReadLine());
-
-            for (int i = 0; i < q; i++)
-            {
-                int[] tokens = Console.ReadLine().Split(' ', '\t').Select(e => int.Parse(e)).ToArray();
-                int t1 = tokens[0] - 1;
-                int t2 = tokens[1] - 1;
-
-                if ((ff[t1, t2 / 64] & ((ulong)1 << (t2 % 64))) == 0)
-                    Console.WriteLine("YES");
-                else
-                    Console.WriteLine("No");
-            }
 
 #if !ONLINE_JUDGE
             ;
@@ -91,14 +35,6 @@ namespace ConsoleApplication1
             sw.Flush();
             sw.Close();
 #endif
-        }
-
-        private static void DFS(int u, int v)
-        {
-            aa[u, v] = true;
-            foreach (int i in s[v])
-                if (!aa[u, i])
-                    DFS(u, i);
         }
     }
 }
