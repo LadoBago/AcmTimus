@@ -64,8 +64,10 @@
     <Content Include="Accepted\1042.txt" />
     <Content Include="Accepted\1487.txt" />
     <Content Include="Accepted\1627.txt" />
+    <Content Include="Accepted\1671.txt" />
     <Content Include="Input.txt" />
     <Content Include="Output.txt" />
+    <Content Include="Pending\1737.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
