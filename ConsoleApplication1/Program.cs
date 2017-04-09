@@ -7,6 +7,7 @@ namespace ConsoleApplication1
 {
     class Program
     {
+        private static List<Struct1> L = new List<Struct1>();
         static void Main(string[] args)
         {
 #if !ONLINE_JUDGE
@@ -15,43 +16,41 @@ namespace ConsoleApplication1
             Console.SetIn(sr);
             Console.SetOut(sw);
 #endif
-            int[] tokens = Console.ReadLine().Split(' ', '\t').Select(e => int.Parse(e)).ToArray();
-            int n = tokens[0];
-            int m = tokens[1];
-
-            int[,] a = new int[3, m];
-
-            for (int i = 0; i < m; i++)
+            int n = Convert.ToInt32(Console.ReadLine());
+            Struct1 s = new Struct1(0);
+            int[] tokens = null;
+            for (int i = 0; i < n; i++)
             {
                 tokens = Console.ReadLine().Split(' ', '\t').Select(e => int.Parse(e)).ToArray();
-                a[0, i] = tokens[0] - 1;
-                a[1, i] = tokens[1] - 1;
-                a[2, i] = 0;
+                if (s.Start != tokens[0])
+                {
+                    if (s.Start != 0)
+                        L.Add(s);
+                    s = new Struct1(tokens[0]);
+                }
+                s.Ends.Add(new Struct0(tokens[1], i));
             }
+            L.Add(s);
 
-            int q = Convert.ToInt32(Console.ReadLine());
-            int[] qq = Console.ReadLine().Split(' ', '\t').Select(e => int.Parse(e)).ToArray();
-            int[] answers = new int[q];
-
-            foreach (int q1 in qq)
-                a[2, q1 - 1] = 1;
-
-            DSU dsu = new ConsoleApplication1.DSU(n);
-
+            int m = Convert.ToInt32(Console.ReadLine());
+            int c = 0;
+            BinSearch<Struct1> bs1 = new BinSearch<Struct1>(L.ToArray(), e => e.Start);
             for (int i = 0; i < m; i++)
-                if (a[2, i] == 0)
-                    dsu.Union(a[0, i], a[1, i]);
-
-            answers[q - 1] = dsu.N;
-
-            for (int q1 = qq.Length - 1; q1 > 0; q1--)
             {
-                dsu.Union(a[0, qq[q1] - 1], a[1, qq[q1] - 1]);
-                answers[q1 - 1] = dsu.N;
-            }
+                c = Convert.ToInt32(Console.ReadLine());
+                BSResult bsr = bs1.Search(c);
+                if (bsr.Index < 0)
+                {
+                    if (bsr.LeftIndex < 0)
+                        Console.WriteLine(-1);
+                    else
+                    {
 
-            for (int i = 0; i < q; i++)
-                Console.Write("{0} ", answers[i]);
+                    }
+                }
+                else
+                    Console.WriteLine(L[bsr.Index].Ends.Last().Comp);
+            }
 
 #if !ONLINE_JUDGE
             ;
@@ -62,48 +61,69 @@ namespace ConsoleApplication1
         }
     }
 
-    class DSU
+    struct Struct0
     {
-        public int N { get; set; }
-        private int[] _P, _R;
+        public int End { get; set; }
+        public int Comp { get; set; }
 
-        public DSU(int n)
+        public Struct0(int end, int comp)
         {
-            this.N = n;
-            this._P = new int[n];
-            this._R = new int[n];
+            this.End = end;
+            this.Comp = comp;
+        }
+    }
 
-            for (int i = 0; i < n; i++)
-            {
-                _R[i] = 0;
-                _P[i] = i;
-            }
+    struct Struct1
+    {
+        public int Start { get; set; }
+        public List<Struct0> Ends { get; set; }
+
+        public Struct1(int s)
+        {
+            this.Start = s;
+            this.Ends = new List<Struct0>();
+        }
+    }
+    class BinSearch<T>
+    {
+        T[] _Array;
+        Func<T, int> _Func;
+        public BinSearch(T[] array, Func<T, int> func)
+        {
+            this._Array = array;
+            this._Func = func;
         }
 
-        public int Find(int i)
+        public BSResult Search(int obj)
         {
-            if (_P[i] == i)
-                return i;
-            return _P[i] = Find(_P[i]);
+            return this.Search(obj, 0, this._Array.Length - 1);
         }
-
-        public void Union(int a, int b)
+        public BSResult Search(int obj, int l, int r)
         {
-            a = Find(a);
-            b = Find(b);
-            if (a != b)
-            {
-                N--;
-                if (_R[a] < _R[b])
-                    _P[a] = _P[b];
-                else if (_R[a] > _R[b])
-                    _P[b] = _P[a];
-                else
-                {
-                    _P[b] = _P[a];
-                    _R[a]++;
-                }
-            }
+            if (l > r)
+                return new BSResult(-1, r);
+
+            int t = (l + r) / 2;
+            int c = obj.CompareTo(_Func(_Array[t]));
+            if (c == 0)
+                return new BSResult(t, -1);
+            else if (c < 0)
+                return Search(obj, l, t - 1);
+            else
+                return Search(obj, t + 1, l);
+
+        }
+    }
+
+    struct BSResult
+    {
+        public int Index { get; set; }
+        public int LeftIndex { get; set; }
+
+        public BSResult(int index, int leftIndex)
+        {
+            this.Index = index;
+            this.LeftIndex = leftIndex;
         }
     }
 }
