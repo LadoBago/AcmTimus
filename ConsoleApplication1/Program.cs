@@ -7,7 +7,7 @@ namespace ConsoleApplication1
 {
     class Program
     {
-        private static List<Struct1> L = new List<Struct1>();
+        private static Heap<Struct0> H;
         static void Main(string[] args)
         {
 #if !ONLINE_JUDGE
@@ -17,39 +17,28 @@ namespace ConsoleApplication1
             Console.SetOut(sw);
 #endif
             int n = Convert.ToInt32(Console.ReadLine());
-            Struct1 s = new Struct1(0);
+            H = new Heap<Struct0>(2 * n, new Struct0Comparer());
             int[] tokens = null;
             for (int i = 0; i < n; i++)
             {
                 tokens = Console.ReadLine().Split(' ', '\t').Select(e => int.Parse(e)).ToArray();
-                if (s.Start != tokens[0])
-                {
-                    if (s.Start != 0)
-                        L.Add(s);
-                    s = new Struct1(tokens[0]);
-                }
-                s.Ends.Add(new Struct0(tokens[1], i));
+                H.Add(new Struct0(tokens[0], i));
+                H.Add(new Struct0(tokens[1], i));
             }
-            L.Add(s);
 
             int m = Convert.ToInt32(Console.ReadLine());
             int c = 0;
-            BinSearch<Struct1> bs1 = new BinSearch<Struct1>(L.ToArray(), e => e.Start);
+
+            Stack<int> stack = new Stack<int>(2 * n);
+            Struct0[] a = new Struct0[2 * n];
+            int j = 0;
+            while (H.Count > 0)
+                a[j++] = H.Fetch();
+
             for (int i = 0; i < m; i++)
             {
                 c = Convert.ToInt32(Console.ReadLine());
-                BSResult bsr = bs1.Search(c);
-                if (bsr.Index < 0)
-                {
-                    if (bsr.LeftIndex < 0)
-                        Console.WriteLine(-1);
-                    else
-                    {
 
-                    }
-                }
-                else
-                    Console.WriteLine(L[bsr.Index].Ends.Last().Comp);
             }
 
 #if !ONLINE_JUDGE
@@ -61,69 +50,92 @@ namespace ConsoleApplication1
         }
     }
 
+    class Struct0Comparer : IComparer<Struct0>
+    {
+        public int Compare(Struct0 x, Struct0 y)
+        {
+            if (x.Point == 0)
+                return -1;
+
+            if (y.Point == 0)
+                return 1;
+
+            return y.Point.CompareTo(x.Point);
+        }
+    }
+
     struct Struct0
     {
-        public int End { get; set; }
+        public int Point { get; set; }
         public int Comp { get; set; }
 
-        public Struct0(int end, int comp)
+        public Struct0(int point, int comp)
         {
-            this.End = end;
+            this.Point = point;
             this.Comp = comp;
         }
     }
 
-    struct Struct1
+    class Heap<T>
     {
-        public int Start { get; set; }
-        public List<Struct0> Ends { get; set; }
+        private T[] _List;
+        private int[] _Indices;
+        private IComparer<T> _Comparer;
+        private int _NextIndex;
+        public int Count { get; set; }
+        public int Capacity { get; set; }
 
-        public Struct1(int s)
+        public Heap(int capacity, IComparer<T> comparer)
         {
-            this.Start = s;
-            this.Ends = new List<Struct0>();
-        }
-    }
-    class BinSearch<T>
-    {
-        T[] _Array;
-        Func<T, int> _Func;
-        public BinSearch(T[] array, Func<T, int> func)
-        {
-            this._Array = array;
-            this._Func = func;
+            this._NextIndex = capacity;
+            this._List = new T[2 * capacity];
+            this._Indices = new int[2 * capacity];
+
+            for (int i = 0; i < 2 * capacity; i++)
+            {
+                this._List[i] = default(T);
+
+                if (i < capacity)
+                    this._Indices[i] = -1;
+                else
+                    this._Indices[i] = i;
+            }
+
+            this._Comparer = comparer;
+            this.Count = 0;
+            this.Capacity = capacity;
         }
 
-        public BSResult Search(int obj)
+        public void Add(T item)
         {
-            return this.Search(obj, 0, this._Array.Length - 1);
-        }
-        public BSResult Search(int obj, int l, int r)
-        {
-            if (l > r)
-                return new BSResult(-1, r);
-
-            int t = (l + r) / 2;
-            int c = obj.CompareTo(_Func(_Array[t]));
-            if (c == 0)
-                return new BSResult(t, -1);
-            else if (c < 0)
-                return Search(obj, l, t - 1);
-            else
-                return Search(obj, t + 1, l);
+            this._List[this._NextIndex] = item;
+            this._Update(this._NextIndex);
+            this._NextIndex++;
+            this.Count++;
 
         }
-    }
 
-    struct BSResult
-    {
-        public int Index { get; set; }
-        public int LeftIndex { get; set; }
-
-        public BSResult(int index, int leftIndex)
+        private void _Update(int i)
         {
-            this.Index = index;
-            this.LeftIndex = leftIndex;
+            if (i == 0)
+                return;
+
+            if (_Comparer.Compare(this._List[(i - 1) / 2], this._List[i]) >= 0)
+                return;
+            this._Indices[(i - 1) / 2] = this._Indices[i];
+            this._List[(i - 1) / 2] = this._List[i];
+            this._Update((i - 1) / 2);
         }
+
+        public T Fetch()
+        {
+            T res = this._List[0];
+            this._List[this._Indices[0]] = default(T);
+            this._Update(this._Indices[0]);
+            this.Count--;
+
+            return res;
+        }
+
     }
 }

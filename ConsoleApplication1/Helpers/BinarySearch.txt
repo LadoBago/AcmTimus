@@ -1,0 +1,42 @@
+﻿    class BinSearch<T>
+    {
+        T[] _Array;
+        Func<T, int> _Func;
+        public BinSearch(T[] array, Func<T, int> func)
+        {
+            this._Array = array;
+            this._Func = func;
+        }
+
+        public BSResult Search(int obj)
+        {
+            return this.Search(obj, 0, this._Array.Length - 1);
+        }
+        public BSResult Search(int obj, int l, int r)
+        {
+            if (l > r)
+                return new BSResult(-1, r);
+
+            int t = (l + r) / 2;
+            int c = obj.CompareTo(_Func(_Array[t]));
+            if (c == 0)
+                return new BSResult(t, -1);
+            else if (c < 0)
+                return Search(obj, l, t - 1);
+            else
+                return Search(obj, t + 1, l);
+
+        }
+    }
+
+    struct BSResult
+    {
+        public int Index { get; set; }
+        public int LeftIndex { get; set; }
+
+        public BSResult(int index, int leftIndex)
+        {
+            this.Index = index;
+            this.LeftIndex = leftIndex;
+        }
+    }
