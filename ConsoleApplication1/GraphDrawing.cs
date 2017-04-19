@@ -9,6 +9,7 @@ namespace ConsoleApplication1
     public class GraphDrawing
     {
         private List<Distance>[] _Distances;
+        private int[,] _Adj;
 
         public GraphDrawing()
         {
@@ -19,6 +20,7 @@ namespace ConsoleApplication1
             int[] res = new int[2 * NV];
             int edgesCount = edges.Length / 3;
             _Distances = new List<Distance>[NV];
+            _Adj = new int[NV, NV];
             bool[] flags = new bool[NV];
             int[,] components = new int[2, NV];
             int componentsCount = 0;
@@ -29,6 +31,8 @@ namespace ConsoleApplication1
                 components[0, i] = -1;
                 components[1, i] = -1;
                 flags[i] = false;
+                for (int j = 0; j < NV; j++)
+                    _Adj[i, j] = 0;
             }
 
             DSU dsu = new DSU(NV);
@@ -37,10 +41,14 @@ namespace ConsoleApplication1
             {
                 _Distances[edges[3 * i]].Add(new Distance(edges[3 * i + 1], edges[3 * i + 2]));
                 _Distances[edges[3 * i + 1]].Add(new Distance(edges[3 * i], edges[3 * i + 2]));
+
+                _Adj[edges[3 * i], edges[3 * i + 1]] = edges[3 * i + 2];
+                _Adj[edges[3 * i + 1], edges[3 * i]] = edges[3 * i + 2];
+
                 dsu.Union(edges[3 * i], edges[3 * i + 1]);
             }
 
-            List<Stack<int>> paths = new List<Stack<int>>();
+            List<List<int>> paths = new List<List<int>>();
 
             for (int i = 0; i < NV; i++)
             {
@@ -57,12 +65,12 @@ namespace ConsoleApplication1
                 if (_Distances[i].Count == 1 && !flags[i])
                 {
                     int t = _Distances[i][0].ToVertex;
-                    Stack<int> tmpStack = new Stack<int>();
+                    List<int> tmpStack = new List<int>();
                     do
                     {
                         components[1, t] = -1;
                         flags[t] = true;
-                        tmpStack.Push(t);
+                        tmpStack.Add(t);
                         t = _Distances[t][0].ToVertex != t ? _Distances[t][0].ToVertex : _Distances[t][1].ToVertex;
                     }
                     while (_Distances[t].Count <= 2);
