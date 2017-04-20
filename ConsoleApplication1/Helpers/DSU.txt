@@ -1,0 +1,44 @@
+﻿    class DSU
+    {
+        public int N { get; set; }
+        private int[] _P, _R;
+
+        public DSU(int n)
+        {
+            this.N = n;
+            this._P = new int[n];
+            this._R = new int[n];
+
+            for (int i = 0; i < n; i++)
+            {
+                _R[i] = 0;
+                _P[i] = i;
+            }
+        }
+
+        public int Find(int i)
+        {
+            if (_P[i] == i)
+                return i;
+            return _P[i] = Find(_P[i]);
+        }
+
+        public void Union(int a, int b)
+        {
+            a = Find(a);
+            b = Find(b);
+            if (a != b)
+            {
+                N--;
+                if (_R[a] < _R[b])
+                    _P[a] = _P[b];
+                else if (_R[a] > _R[b])
+                    _P[b] = _P[a];
+                else
+                {
+                    _P[b] = _P[a];
+                    _R[a]++;
+                }
+            }
+        }
+    }
