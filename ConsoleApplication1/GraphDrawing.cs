@@ -8,8 +8,8 @@ namespace ConsoleApplication1
 {
     public class GraphDrawing
     {
-        private List<Distance>[] _Distances;
-        private int[,] _Adj;
+        private List<int>[] _AdjList;
+        private int[,] _AdjMatrix;
 
         public GraphDrawing()
         {
@@ -19,31 +19,35 @@ namespace ConsoleApplication1
         {
             int[] res = new int[2 * NV];
             int edgesCount = edges.Length / 3;
-            _Distances = new List<Distance>[NV];
-            _Adj = new int[NV, NV];
+            _AdjList = new List<int>[NV];
+            _AdjMatrix = new int[NV, NV];
             bool[] flags = new bool[NV];
-            int[,] components = new int[2, NV];
+            int[][] components = new int[][] { new int[NV], new int[NV], new int[NV] };
             int componentsCount = 0;
 
             for (int i = 0; i < NV; i++)
             {
-                _Distances[i] = new List<Distance>();
-                components[0, i] = -1;
-                components[1, i] = -1;
+                _AdjList[i] = new List<int>();
+                components[0][i] = components[1][i] = -1;
+                components[2][i] = 0;
+
                 flags[i] = false;
                 for (int j = 0; j < NV; j++)
-                    _Adj[i, j] = 0;
+                    _AdjMatrix[i, j] = 0;
             }
 
             DSU dsu = new DSU(NV);
 
             for (int i = 0; i < edgesCount; i++)
             {
-                _Distances[edges[3 * i]].Add(new Distance(edges[3 * i + 1], edges[3 * i + 2]));
-                _Distances[edges[3 * i + 1]].Add(new Distance(edges[3 * i], edges[3 * i + 2]));
+                _AdjList[edges[3 * i]].Add(edges[3 * i + 1]);
+                _AdjList[edges[3 * i + 1]].Add(edges[3 * i]);
 
-                _Adj[edges[3 * i], edges[3 * i + 1]] = edges[3 * i + 2];
-                _Adj[edges[3 * i + 1], edges[3 * i]] = edges[3 * i + 2];
+                _AdjMatrix[edges[3 * i], edges[3 * i + 1]] = edges[3 * i + 2];
+                _AdjMatrix[edges[3 * i + 1], edges[3 * i]] = edges[3 * i + 2];
+
+                components[2][edges[3 * i]]++;
+                components[2][edges[3 * i + 1]]++;
 
                 dsu.Union(edges[3 * i], edges[3 * i + 1]);
             }
@@ -54,44 +58,33 @@ namespace ConsoleApplication1
             {
                 int parent = dsu.Find(i);
 
-                if (components[0, parent] == -1)
-                    components[0, parent] = componentsCount++;
+                if (components[0][parent] == -1)
+                    components[0][parent] = componentsCount++;
 
-                components[1, i] = components[0, parent];
+                components[1][i] = components[0][parent];
             }
 
             for (int i = 0; i < NV; i++)
             {
-                if (_Distances[i].Count == 1 && !flags[i])
+                if (components[2][i] == 1 && !flags[i])
                 {
-                    int t = _Distances[i][0].ToVertex;
+                    int t = _AdjList[i][0];
                     List<int> tmpStack = new List<int>();
                     do
                     {
-                        components[1, t] = -1;
+                        components[1][t] = -1;
                         flags[t] = true;
                         tmpStack.Add(t);
-                        t = _Distances[t][0].ToVertex != t ? _Distances[t][0].ToVertex : _Distances[t][1].ToVertex;
+                        t = _AdjList[t][0] != t ? _AdjList[t][0] : _AdjList[t][1];
                     }
-                    while (_Distances[t].Count <= 2);
+                    while (components[2][t] <= 2);
 
+                    components[2][t]--;
                     paths.Add(tmpStack);
                 }
             }
 
             return res;
-        }
-    }
-
-    class Distance
-    {
-        public int ToVertex { get; set; }
-        public int DesiredLength { get; set; }
-
-        public Distance(int toVertex, int desiredLength)
-        {
-            this.ToVertex = toVertex;
-            this.DesiredLength = desiredLength;
         }
     }
 
