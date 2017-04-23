@@ -4,133 +4,163 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ConsoleApplication1
+public class GraphDrawing
 {
-    public class GraphDrawing
-    {
-        private List<int>[] _AdjList;
-        private int[,] _AdjMatrix;
+    private const int PXLS = 701;
+    private const int MAX_VALUE = PXLS * PXLS;
 
-        public GraphDrawing()
+    private int[,] _AdjMatrix;
+    private List<int>[] _AdjList;
+    private Random _R;
+    private bool[,] _Pixels = new bool[PXLS, PXLS];
+
+    public double maxK = 0;
+    public int Cnt = 0;
+
+    public GraphDrawing()
+    {
+        _R = new Random(DateTime.Now.Millisecond);
+    }
+
+    public int[] plot(int NV, int[] edges)
+    {
+        long startTicks = DateTime.Now.Ticks;
+        int[] res = new int[2 * NV];
+        _AdjMatrix = new int[NV, NV];
+        _AdjList = new List<int>[NV];
+
+        int edgesCount = edges.Length / 3;
+
+        for (int i = 0; i < PXLS; i++)
+            for (int j = 0; j < PXLS; j++)
+                _Pixels[i, j] = false;
+
+        for (int i = 0; i < NV; i++)
         {
+            _AdjList[i] = new List<int>();
+            for (int j = 0; j < NV; j++)
+            {
+                _AdjMatrix[i, j] = 0;
+            }
         }
 
-        public int[] plot(int NV, int[] edges)
-        {
-            int[] res = new int[2 * NV];
-            int edgesCount = edges.Length / 3;
-            _AdjList = new List<int>[NV];
-            _AdjMatrix = new int[NV, NV];
-            bool[] flags = new bool[NV];
-            int[][] components = new int[][] { new int[NV], new int[NV], new int[NV] };
-            int componentsCount = 0;
+        double minRatio = double.MaxValue;
+        double maxRatio = 0;
+        int r = 0;
+        int x = 0, y = 0;
 
+        double desiredLength = 0, actualLength = 0, ratio = 0;
+
+        for (int i = 0; i < edgesCount; i++)
+        {
+            _AdjList[edges[3 * i]].Add(edges[3 * i + 1]);
+            _AdjList[edges[3 * i + 1]].Add(edges[3 * i]);
+
+            _AdjMatrix[edges[3 * i], edges[3 * i + 1]] = edges[3 * i + 2];
+            _AdjMatrix[edges[3 * i + 1], edges[3 * i]] = edges[3 * i + 2];
+        }
+
+        for (int i = 0; i < NV; i++)
+            _AdjList[i].Sort();
+
+        do
+        {
+            Cnt++;
+            int[] tmpRes = new int[2 * NV];
             for (int i = 0; i < NV; i++)
             {
-                _AdjList[i] = new List<int>();
-                components[0][i] = components[1][i] = -1;
-                components[2][i] = 0;
-
-                flags[i] = false;
-                for (int j = 0; j < NV; j++)
-                    _AdjMatrix[i, j] = 0;
+                BinSearch bs = new BinSearch(_AdjList[i]);
+                BSResult bsRes = bs.Search(i);
+                for (int j = 0; j <= bsRes.LeftIndex; j++)
+                {
+                    do
+                    {
+                        r = GetNumber();
+                        y = r / PXLS;
+                        x = r % PXLS;
+                    } while (_Pixels[y, x]);
+                    tmpRes[2 * i] = y;
+                    tmpRes[2 * i + 1] = x;
+                }
+                _Pixels[y, x] = true;
             }
-
-            DSU dsu = new DSU(NV);
 
             for (int i = 0; i < edgesCount; i++)
             {
-                _AdjList[edges[3 * i]].Add(edges[3 * i + 1]);
-                _AdjList[edges[3 * i + 1]].Add(edges[3 * i]);
+                desiredLength = edges[3 * i + 2];
+                actualLength = GetDistance(tmpRes[2 * edges[3 * i]], tmpRes[2 * edges[3 * i] + 1], tmpRes[2 * edges[3 * i + 1]], tmpRes[2 * edges[3 * i + 1] + 1]);
+                ratio = actualLength / desiredLength;
 
-                _AdjMatrix[edges[3 * i], edges[3 * i + 1]] = edges[3 * i + 2];
-                _AdjMatrix[edges[3 * i + 1], edges[3 * i]] = edges[3 * i + 2];
-
-                components[2][edges[3 * i]]++;
-                components[2][edges[3 * i + 1]]++;
-
-                dsu.Union(edges[3 * i], edges[3 * i + 1]);
+                if (ratio < minRatio)
+                    minRatio = ratio;
+                if (ratio > maxRatio)
+                    maxRatio = ratio;
             }
 
-            List<List<int>> paths = new List<List<int>>();
+            double tmpMaxK = minRatio / maxRatio;
 
-            for (int i = 0; i < NV; i++)
+            if (tmpMaxK > maxK)
             {
-                int parent = dsu.Find(i);
-
-                if (components[0][parent] == -1)
-                    components[0][parent] = componentsCount++;
-
-                components[1][i] = components[0][parent];
+                res = tmpRes;
+                maxK = tmpMaxK;
             }
 
             for (int i = 0; i < NV; i++)
-            {
-                if (components[2][i] == 1 && !flags[i])
-                {
-                    int t = _AdjList[i][0];
-                    List<int> tmpStack = new List<int>();
-                    do
-                    {
-                        components[1][t] = -1;
-                        flags[t] = true;
-                        tmpStack.Add(t);
-                        t = _AdjList[t][0] != t ? _AdjList[t][0] : _AdjList[t][1];
-                    }
-                    while (components[2][t] <= 2);
+                _Pixels[tmpRes[2 * i], tmpRes[2 * i + 1]] = false;
 
-                    components[2][t]--;
-                    paths.Add(tmpStack);
-                }
-            }
+        } while (TimeSpan.FromTicks(DateTime.Now.Ticks - startTicks).TotalMilliseconds < 19950);
 
-            return res;
-        }
+        return res;
     }
 
-    class DSU
+    private int GetNumber()
     {
-        public int N { get; set; }
-        private int[] _P, _R;
-
-        public DSU(int n)
-        {
-            this.N = n;
-            this._P = new int[n];
-            this._R = new int[n];
-
-            for (int i = 0; i < n; i++)
-            {
-                _R[i] = 0;
-                _P[i] = i;
-            }
-        }
-
-        public int Find(int i)
-        {
-            if (_P[i] == i)
-                return i;
-            return _P[i] = Find(_P[i]);
-        }
-
-        public void Union(int a, int b)
-        {
-            a = Find(a);
-            b = Find(b);
-            if (a != b)
-            {
-                N--;
-                if (_R[a] < _R[b])
-                    _P[a] = _P[b];
-                else if (_R[a] > _R[b])
-                    _P[b] = _P[a];
-                else
-                {
-                    _P[b] = _P[a];
-                    _R[a]++;
-                }
-            }
-        }
+        return _R.Next(MAX_VALUE);
     }
 
+    private double GetDistance(int y1, int x1, int y2, int x2)
+    {
+        return Math.Sqrt((y1 - y2) * (y1 - y2) + (x1 - x2) * (x1 - x2));
+    }
+}
+
+class BinSearch
+{
+    List<int> _Array;
+    public BinSearch(List<int> array)
+    {
+        this._Array = array;
+    }
+
+    public BSResult Search(int obj)
+    {
+        return this.Search(obj, 0, this._Array.Count - 1);
+    }
+    public BSResult Search(int obj, int l, int r)
+    {
+        if (l > r)
+            return new BSResult(-1, r);
+
+        int t = (l + r) / 2;
+        int c = obj.CompareTo(_Array[t]);
+        if (c == 0)
+            return new BSResult(t, -1);
+        else if (c < 0)
+            return Search(obj, l, t - 1);
+        else
+            return Search(obj, t + 1, l);
+
+    }
+}
+
+struct BSResult
+{
+    public int Index { get; set; }
+    public int LeftIndex { get; set; }
+
+    public BSResult(int index, int leftIndex)
+    {
+        this.Index = index;
+        this.LeftIndex = leftIndex;
+    }
 }

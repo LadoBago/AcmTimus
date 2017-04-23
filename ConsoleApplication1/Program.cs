@@ -15,57 +15,25 @@ namespace ConsoleApplication1
             Console.SetIn(sr);
             Console.SetOut(sw);
 #endif
-            int n = Convert.ToInt32(Console.ReadLine());
-            Stack<int> s1 = new Stack<int>();
-            Stack<int> s2 = new Stack<int>();
-
-            int a0 = Convert.ToInt32(Console.ReadLine());
-
-            int segmentStart = a0;
-            int maxSegmentStart = a0;
-            int segmentEnd = 1;
-            bool nc = true;
-
-            for (int i = 1; i < n; i++)
+            int N = int.Parse(Console.ReadLine());
+            int E = int.Parse(Console.ReadLine());
+            int[] edges = new int[E * 3];
+            for (int i = 0; i < E; ++i)
             {
-                int a1 = Convert.ToInt32(Console.ReadLine());
-
-                if (a0 != segmentEnd &&
-                    a1 < segmentEnd)
-                {
-                    nc = false;
-                    break;
-                }
-
-                if (a1 > a0)
-                {
-                    if (a0 > segmentEnd)
-                    {
-                        s1.Push(a0 - 1);
-                        s2.Push(segmentEnd);
-                    }
-                    segmentEnd = maxSegmentStart + 1;
-                    maxSegmentStart = a1;
-                }
-
-                if (a0 - a1 > 1)
-                {
-                    if (s1.Count == 0 || s1.Pop() != a1)
-                    {
-                        nc = false;
-                        break;
-                    }
-                    else
-                        segmentEnd = s2.Pop();
-                }
-
-                a0 = a1;
+                int[] tokens = Console.ReadLine().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).Select(e => int.Parse(e)).ToArray();
+                Array.Copy(tokens, 0, edges, 3 * i, 3);
             }
 
-            if (nc)
-                Console.WriteLine("Not a proof");
-            else
-                Console.WriteLine("Cheater");
+            GraphDrawing gd = new GraphDrawing();
+            int[] ret = gd.plot(N, edges);
+
+            Console.WriteLine(gd.Cnt);
+            Console.WriteLine(gd.maxK);
+            Console.WriteLine(ret.Length);
+            for (int i = 0; i < ret.Length; ++i)
+            {
+                Console.WriteLine(ret[i]);
+            }
 
 #if !ONLINE_JUDGE
             ;
