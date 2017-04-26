@@ -14,8 +14,11 @@
         }
         public BSResult Search(int obj, int l, int r)
         {
-            if (l > r)
-                return new BSResult(-1, r);
+			if (l > r)
+				if (l < _Array.Count && obj.CompareTo(_Func(_Array[l])) > 0)
+					return new BSResult(-1, l);
+				else
+					return new BSResult(-1, r);
 
             int t = (l + r) / 2;
             int c = obj.CompareTo(_Func(_Array[t]));

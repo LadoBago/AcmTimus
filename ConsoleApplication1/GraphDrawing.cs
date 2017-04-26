@@ -13,6 +13,7 @@ public class GraphDrawing
     private List<int>[] _AdjList;
     private Random _R;
     private bool[,] _Pixels = new bool[PXLS, PXLS];
+    private int[] _AllowedArea;
 
     public double maxK = 0;
     public int Cnt = 0;
@@ -28,6 +29,7 @@ public class GraphDrawing
         int[] res = new int[2 * NV];
         _AdjMatrix = new double[NV, NV];
         _AdjList = new List<int>[NV];
+        _AllowedArea = new int[NV];
 
         int edgesCount = edges.Length / 3;
 
@@ -38,6 +40,7 @@ public class GraphDrawing
         for (int i = 0; i < NV; i++)
         {
             _AdjList[i] = new List<int>();
+            _AllowedArea[i] = 350;
             for (int j = 0; j < NV; j++)
             {
                 _AdjMatrix[i, j] = 0;
@@ -70,24 +73,26 @@ public class GraphDrawing
         {
             Cnt++;
             tmpRes = new int[2 * NV];
-            ratio = 0.9D +_R.NextDouble() * 0.2D;
+            ratio = 0.7D + _R.NextDouble() * 0.4D;
             tmpRatio = 0;
+            int i = 0;
 
-            for (int i = 0; i < NV; i++)
+            for (int j = 0; j < NV; j++)
+                _AllowedArea[j] = 350;
+            do
             {
                 BinSearch bs = new BinSearch(_AdjList[i]);
                 BSResult bsRes = bs.Search(i);
                 bestRatio = double.MaxValue;
                 if (bsRes.LeftIndex >= 0)
                 {
-                    cy = tmpRes[2 * _AdjList[i][0]];
-                    cx = tmpRes[2 * _AdjList[i][0] + 1];
+                    cy = tmpRes[2 * _AdjList[i][bsRes.LeftIndex]];
+                    cx = tmpRes[2 * _AdjList[i][bsRes.LeftIndex] + 1];
                     tmpDouble = Math.Sqrt(Math.Abs(1D - ratio));
-                    distance = _AdjMatrix[i, _AdjList[i][0]] * (1D - tmpDouble + _R.NextDouble() * 2 * tmpDouble);
+                    distance = _AdjMatrix[i, _AdjList[i][bsRes.LeftIndex]] * (1D - tmpDouble + _R.NextDouble() * 2 * tmpDouble);
                     leftBound = (int)Math.Max(0, cx - distance);
                     rightBound = (int)Math.Min(700, cx + distance);
-
-                    for (int l = 0; l < 1500; l++)
+                    for (int l = 0; l < 1400; l++)
                     {
                         xCounter = 0;
                         do
@@ -95,32 +100,48 @@ public class GraphDrawing
                             xCounter++;
                             x = (int)Math.Round(leftBound + _R.NextDouble() * (rightBound - leftBound));
                             tmpInt = GetY2(cx, x, distance);
-                            y = cy + tmpInt * xCounter % 2 == 0 ? 1 : -1;
-                            if (y < 0 || y > 700 || _Pixels[y, x])
-                                y = cy + tmpInt * xCounter % 2 == 0 ? -1 : 1;
-                        } while ((y < 0 || y > 700 || _Pixels[y, x]) && xCounter <= 701);
+                            y = cy + tmpInt * (xCounter % 2 == 0 ? 1 : -1);
+                            if (y < 0 || y > 700 || _Pixels[y, x] || !(x <= _AllowedArea[i] || x >= (700 - _AllowedArea[i]) || y <= _AllowedArea[i] || y >= (700 - _AllowedArea[i])))
+                                y = cy + tmpInt * (xCounter % 2 == 0 ? -1 : 1);
+                        } while (
+                                 (
+                                    y < 0 || y > 700 || _Pixels[y, x]
+                                    || !(x <= _AllowedArea[i] || x >= (700 - _AllowedArea[i]) || y <= _AllowedArea[i] || y >= (700 - _AllowedArea[i]))
+                                )
+                                && xCounter <= 701);
 
-                        if (xCounter > 701)
+                        if (xCounter > 701 && bestRatio > 1000000)
                             break;
 
-                        badRatio = ratio;
-                        for (int j = bsRes.LeftIndex; j >= 0; j--)
+                        if (xCounter <= 701)
                         {
-                            tmpRatio = GetDistance(y, x, tmpRes[2 * _AdjList[i][j]], tmpRes[2 * _AdjList[i][j] + 1]) / _AdjMatrix[i, _AdjList[i][j]];
-                            if (Math.Abs(tmpRatio - ratio) > Math.Abs(badRatio - ratio))
-                                badRatio = tmpRatio;
-                        }
+                            badRatio = ratio;
+                            for (int j = bsRes.LeftIndex; j >= 0; j--)
+                            {
+                                tmpRatio = GetDistance(y, x, tmpRes[2 * _AdjList[i][j]], tmpRes[2 * _AdjList[i][j] + 1]) / _AdjMatrix[i, _AdjList[i][j]];
+                                if (Math.Abs(tmpRatio - ratio) > Math.Abs(badRatio - ratio))
+                                    badRatio = tmpRatio;
+                            }
 
-                        if (Math.Abs(badRatio - ratio) < Math.Abs(bestRatio - ratio))
-                        {
-                            bestRatio = badRatio;
-                            bestY = y;
-                            bestX = x;
+                            if (Math.Abs(badRatio - ratio) < Math.Abs(bestRatio - ratio))
+                            {
+                                bestRatio = badRatio;
+                                bestY = y;
+                                bestX = x;
+                            }
                         }
                     }
 
-                    if (xCounter > 701)
-                        break;
+                    if (xCounter > 701 && bestRatio > 1000000)
+                    {
+                        for (int j = _AdjList[i][bsRes.LeftIndex]; j < i; j++)
+                            _Pixels[tmpRes[2 * j], tmpRes[2 * j + 1]] = false;
+
+                        i = _AdjList[i][bsRes.LeftIndex];
+                        _AllowedArea[i] = Math.Max(50, Math.Min(_AllowedArea[i], Math.Min(cx, cy)));
+
+                        continue;
+                    }
 
                     if (bestRatio < minRatio)
                     {
@@ -149,7 +170,8 @@ public class GraphDrawing
                 tmpRes[2 * i + 1] = bestX;
 
                 _Pixels[bestY, bestX] = true;
-            }
+                i++;
+            } while (i < NV);
 
             if (xCounter <= 701)
             {
@@ -161,10 +183,10 @@ public class GraphDrawing
                     maxK = tmpMaxK;
                 }
             }
-            for (int i = 0; i < NV; i++)
-                _Pixels[tmpRes[2 * i], tmpRes[2 * i + 1]] = false;
+            for (int j = 0; j < NV; j++)
+                _Pixels[tmpRes[2 * j], tmpRes[2 * j + 1]] = false;
 
-        } while (TimeSpan.FromTicks(DateTime.Now.Ticks - startTicks).TotalMilliseconds < 9900);
+        } while (TimeSpan.FromTicks(DateTime.Now.Ticks - startTicks).TotalMilliseconds < 9200);
 
         return res;
     }
@@ -201,7 +223,7 @@ class BinSearch
     {
         if (l > r)
             if (l < _Array.Count && obj.CompareTo(_Array[l]) > 0)
-                    return new BSResult(-1, l);
+                return new BSResult(-1, l);
             else
                 return new BSResult(-1, r);
 
