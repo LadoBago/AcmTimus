@@ -17,8 +17,32 @@ namespace ConsoleApplication1
             Console.SetOut(sw);
 #endif
             int n = int.Parse(Console.ReadLine());
-            BigInteger res = rec(n);
-            Console.WriteLine(res.ToString());
+            int pow = 0;
+
+            while (n % 2 == 0)
+            {
+                n = n / 2;
+                pow++;
+            }
+
+            while (true)
+            {
+                BigInteger res = rec(pow++);
+
+                if (res.ToString().Length > 30)
+                {
+                    Console.WriteLine("Impossible");
+                    break;
+                }
+
+                if (BigInteger.Compare(BigInteger.Remainder(res, new BigInteger(n)), BigInteger.Zero) == 0)
+                {
+                    Console.WriteLine(res.ToString());
+                    break;
+                }
+
+            }
+
 
 #if !ONLINE_JUDGE
             ;
