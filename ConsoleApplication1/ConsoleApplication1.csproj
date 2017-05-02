@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Accepted\1042.txt" />
+    <Content Include="Accepted\1407.txt" />
     <Content Include="Accepted\1487.txt" />
     <Content Include="Accepted\1494.txt" />
     <Content Include="Accepted\1627.txt" />
