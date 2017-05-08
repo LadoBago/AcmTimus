@@ -17,32 +17,12 @@ namespace ConsoleApplication1
             Console.SetOut(sw);
 #endif
             int n = int.Parse(Console.ReadLine());
-            int pow = 0;
-
-            while (n % 2 == 0)
-            {
-                n = n / 2;
-                pow++;
-            }
-
-            while (true)
-            {
-                BigInteger res = rec(pow++);
-
-                if (res.ToString().Length > 30)
-                {
-                    Console.WriteLine("Impossible");
-                    break;
-                }
-
-                if (BigInteger.Compare(BigInteger.Remainder(res, new BigInteger(n)), BigInteger.Zero) == 0)
-                {
-                    Console.WriteLine(res.ToString());
-                    break;
-                }
-
-            }
-
+            int d = n - (n / 10) * 10;
+            BigInteger res = rec(ref n, ref d, 1, BigInteger.Zero);
+            if (BigInteger.Compare(res, BigInteger.MinusOne) == 0)
+                Console.WriteLine("Impossible");
+            else
+                Console.WriteLine(res.ToString());
 
 #if !ONLINE_JUDGE
             ;
@@ -52,56 +32,27 @@ namespace ConsoleApplication1
 #endif
         }
 
-        private static BigInteger rec(int n)
+        private static BigInteger rec(ref int n, ref int d, int i, BigInteger res)
         {
-            switch (n)
+            int dr = (int)BigInteger.Remainder(BigInteger.Divide(res, BigInteger.Pow(new BigInteger(10), i - 1)), new BigInteger(10));
+            int r1 = 1 - dr; if (r1 < 0) r1 += 10;
+            int r2 = 2 - dr; if (r2 < 0) r2 += 10;
+
+            List<int> l1 = new List<int>();
+            List<int> l2 = new List<int>();
+
+            for (int j = 0; j < 10; j++)
             {
-                case 0: return 1;
-                case 1: return 2;
-                case 2: return 12;
+                if ((d * j) % r1 == 0) l1.Add(j);
+                if ((d * j) % r2 == 0) l2.Add(j);
             }
 
-            BigInteger m;
-
-            BigInteger prev = rec(n - 1);
-            int len = prev.ToString().Length;
-            BigInteger twosPrev = BigInteger.Pow(2, n - 1);
-            BigInteger d = BigInteger.DivRem(prev, twosPrev, out m);
-            if (d.IsEven)
-                return prev;
-
-            BigInteger tens = BigInteger.Pow(new BigInteger(10), len - 1);
-            d = BigInteger.DivRem(tens, twosPrev, out m);
-
-            if (BigInteger.Compare(BigInteger.Multiply(tens, new BigInteger(2)), prev) > 0
-                && BigInteger.Compare(m, BigInteger.Zero) == 0
-                && !d.IsEven)
+            foreach (int l in l1)
             {
-                return BigInteger.Add(prev, tens);
+
             }
 
-            tens = BigInteger.Multiply(tens, new BigInteger(10));
-            d = BigInteger.DivRem(tens, twosPrev, out m);
-
-            if (BigInteger.Compare(m, BigInteger.Zero) == 0 && !d.IsEven)
-                return BigInteger.Add(tens, prev);
-
-            BigInteger d1 = BigInteger.Divide(BigInteger.Divide(BigInteger.Multiply(twosPrev, m), BigInteger.GreatestCommonDivisor(twosPrev, m)), m);
-
-            int log = (int)BigInteger.Log(d1, 2D);
-            BigInteger r1 = rec(log);
-
-            if (!BigInteger.Divide(r1, d1).IsEven)
-                return BigInteger.Add(BigInteger.Multiply(tens, r1), prev);
-
-            int rl = r1.ToString().Length;
-            BigInteger res;
-            if (rl == log)
-                res = BigInteger.Add(BigInteger.Multiply(BigInteger.Add(BigInteger.Pow(10, log), r1), tens), prev);
-            else
-                res = BigInteger.Add(BigInteger.Multiply(BigInteger.Add(BigInteger.Multiply(BigInteger.Pow(10, log - 1), new BigInteger(2)), r1), tens), prev);
-
-            return res;
+            return BigInteger.MinusOne;
         }
     }
 }
