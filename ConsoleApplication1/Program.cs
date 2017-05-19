@@ -8,6 +8,8 @@ namespace ConsoleApplication1
 {
     class Program
     {
+        private static int lastDigit, n;
+        private static BigInteger minRes;
         static void Main(string[] args)
         {
 #if !ONLINE_JUDGE
@@ -16,10 +18,11 @@ namespace ConsoleApplication1
             Console.SetIn(sr);
             Console.SetOut(sw);
 #endif
-            int n = int.Parse(Console.ReadLine());
-            int d = n - (n / 10) * 10;
-            BigInteger res = rec(ref n, ref d, 1, BigInteger.Zero);
-            if (BigInteger.Compare(res, BigInteger.MinusOne) == 0)
+            n = int.Parse(Console.ReadLine());
+            lastDigit = n % 10;
+            minRes = BigInteger.Zero;
+            BigInteger res = rec(BigInteger.Zero, 0);
+            if (res.IsZero)
                 Console.WriteLine("Impossible");
             else
                 Console.WriteLine(res.ToString());
@@ -32,27 +35,40 @@ namespace ConsoleApplication1
 #endif
         }
 
-        private static BigInteger rec(ref int n, ref int d, int i, BigInteger res)
+        private static BigInteger rec(BigInteger res, int i)
         {
-            int dr = (int)BigInteger.Remainder(BigInteger.Divide(res, BigInteger.Pow(new BigInteger(10), i - 1)), new BigInteger(10));
+            string str = res.ToString();
+            string strTrimed = str.TrimEnd(new char[] { '1', '2' });
+
+            if (!minRes.IsZero && BigInteger.Compare(res, minRes) >= 0)
+                return BigInteger.Zero;
+            if (string.IsNullOrEmpty(strTrimed))
+                return res;
+            if (str.Length + i >= 30)
+                return BigInteger.Zero;
+
+            i += (str.Length - strTrimed.Length);
+            int dr = int.Parse(strTrimed[strTrimed.Length - 1].ToString());
             int r1 = 1 - dr; if (r1 < 0) r1 += 10;
             int r2 = 2 - dr; if (r2 < 0) r2 += 10;
 
-            List<int> l1 = new List<int>();
-            List<int> l2 = new List<int>();
-
-            for (int j = 0; j < 10; j++)
+            BigInteger tmpRes = BigInteger.Zero;
+            for (int j = 1; j < 10; j++)
             {
-                if ((d * j) % r1 == 0) l1.Add(j);
-                if ((d * j) % r2 == 0) l2.Add(j);
+                int rem = (lastDigit * j) % 10;
+                if (rem == r1 || rem == r2)
+                {
+                    BigInteger p10 = BigInteger.Pow(new BigInteger(10), i);
+                    tmpRes = rec(BigInteger.Divide(BigInteger.Add(res, BigInteger.Multiply(new BigInteger(n), BigInteger.Multiply(new BigInteger(j), p10))), p10), i);
+                    if (!tmpRes.IsZero)
+                    {
+                        if (minRes.IsZero || BigInteger.Compare(tmpRes, minRes) < 0)
+                            minRes = tmpRes;
+                    }
+                }
             }
 
-            foreach (int l in l1)
-            {
-
-            }
-
-            return BigInteger.MinusOne;
+            return tmpRes;
         }
     }
 }
